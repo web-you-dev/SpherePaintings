@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="three.min.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <style>
+        body {
+            overflow: hidden;
+            background: black;
+            margin: 0;
+            padding: 0;
+        }
+
+        #web-you-3d-container{
+            position: absolute;
+            height: 70%;
+            width: 70%;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+</body>
+
+
+<script>
+    // Создаем сцену, камеру и рендерер
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    // Создаем объекты для орбит-контрола
+    const controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 10;
+    controls.maxDistance = 50;
+
+    // Генерируем кубы случайных размеров на поверхности сферы
+    const sphereRadius = 20; // Радиус сферы
+    const cubeCount = 500; // Количество кубов
+    const cubes = []; // Массив для хранения кубов
+    for ( let i = 0; i < cubeCount; i ++ ) {
+        // Создаем куб и задаем случайные размеры
+        const cubeSize = Math.random() * 2 + 1;
+        const geometry = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
+        const material = new THREE.MeshNormalMaterial();
+        const cube = new THREE.Mesh( geometry, material );
+
+        // Генерируем случайную точку на поверхности сферы
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos( Math.random() * 2 - 1 );
+        const x = sphereRadius * Math.sin( phi ) * Math.cos( theta );
+        const y = sphereRadius * Math.sin( phi ) * Math.sin( theta );
+        const z = sphereRadius * Math.cos( phi );
+
+        // Перемещаем куб в случайную точку на поверхности сферы
+        cube.position.set( x, y, z );
+
+        // Проверяем, не пересекается ли куб с уже существующими кубами
+        let intersect = false;
+        for ( let j = 0; j < cubes.length; j ++ ) {
+            const distance = cube.position.distanceTo( cubes[j].position );
+            if ( distance < ( cubeSize + cubes[j].geometry.parameters.width ) / 2 ) {
+                intersect = true;
+                break;
+            }
+        }
+
+        // Если куб не пересекается с другими кубами, добавляем его на сцену и в массив кубов
+        if ( !intersect ) {
+            cubes.push( cube );
+            scene.add( cube );
+        }
+    }
+
+    // Устанавливаем позицию камеры и направление взгляда
+    camera.position.set( 0, 0, 30 );
+    camera.lookAt( 0, 0, 0 );
+
+    // Определяем функцию анимации и запускаем ее
+    function animate() {
+        requestAnimationFrame( animate );
+        controls.update(); // Обновляем орбит-контрол
+
+// Поворачиваем каждый куб в направлении камеры
+        cubes.forEach( cube => {
+            cube.lookAt( camera.position );
+        });
+
+        renderer.render( scene, camera );
+    }
+    animate();
+
+</script>
+</html>
