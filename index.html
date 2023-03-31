@@ -29,7 +29,18 @@
 
 
 </body>
+<script>
+    const response = fetch("https://www.gallery36.pl/wpactions/get-paintings/?author=Pentti Vainio&list=Catawiki&stock=1", {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
 
+        },
+
+    });
+    console.log(response);
+</script>
 
 <script>
     // Создаем сцену, камеру и рендерер
