@@ -29,44 +29,32 @@
 
 
 </body>
-<script>
-    const response = fetch("https://www.gallery36.pl/wpactions/get-paintings/?author=Pentti Vainio&list=Catawiki&stock=1", {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
 
-        },
-
-    });
-    console.log(response);
-</script>
 
 <script>
-    // Создаем сцену, камеру и рендерер
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
+    let data, scene, camera, renderer;
+    let sphereRadius = 20; // Радиус сферы
+    let cubes = []; // Массив для хранения кубов
+    async function loadCubesFromJSON(url) {
+        try {
+            const response = await fetch(url);
+            const resp = await response.text()
+            console.log(resp.substring(resp.length - 10,resp.length - 2)+ resp.substring(resp.length - 1))
+            data = JSON.parse(resp.substring(0, resp.length - 2) + resp.substring(resp.length - 1));
 
-    // Создаем объекты для орбит-контрола
-    const controls = new THREE.OrbitControls( camera, renderer.domElement );
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 10;
-    controls.maxDistance = 50;
 
-    // Генерируем кубы случайных размеров на поверхности сферы
-    const sphereRadius = 20; // Радиус сферы
-    const cubeCount = 500; // Количество кубов
-    const cubes = []; // Массив для хранения кубов
-    for ( let i = 0; i < cubeCount; i ++ ) {
-        // Создаем куб и задаем случайные размеры
+        } catch (error) {
+            console.error('Error loading cubes from JSON', error);
+        }
+    }
+    async function generateCube(item){
         const cubeSize = Math.random() * 2 + 1;
+
+
+
         const geometry = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
-        const material = new THREE.MeshNormalMaterial();
+        const texture = new THREE.TextureLoader().load(item.Photo);
+        const material = new THREE.MeshBasicMaterial({ map: texture });
         const cube = new THREE.Mesh( geometry, material );
 
         // Генерируем случайную точку на поверхности сферы
@@ -95,6 +83,29 @@
             scene.add( cube );
         }
     }
+    loadCubesFromJSON('https://www.ahg36.com/wpactions/get-authors-list/').then(()=>{
+
+
+    // Создаем сцену, камеру и рендерер
+     scene = new THREE.Scene();
+     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+     renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    // Создаем объекты для орбит-контрола
+    const controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 10;
+    controls.maxDistance = 50;
+
+    // Генерируем кубы случайных размеров на поверхности сферы
+
+    data.forEach((item) => {
+        generateCube(item);
+    });
 
     // Устанавливаем позицию камеры и направление взгляда
     camera.position.set( 0, 0, 30 );
@@ -113,6 +124,6 @@
         renderer.render( scene, camera );
     }
     animate();
-
+    });
 </script>
 </html>
